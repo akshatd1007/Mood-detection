@@ -1,41 +1,60 @@
 import streamlit as st
 import cv2
 import numpy as np
+from tensorflow.keras.models import load_model
+import threading
 
-# Title of the app
-st.title("Mood Detection App")
+# Load pre-trained emotion detection model
+model = load_model('emotion_model.hdf5', compile=False)  # Update this to your model's path
+model.compile(optimizer='adam', loss='categorical_crossentropy', metrics=['accuracy'])
 
-# Placeholder for the video feed
-video_placeholder = st.empty()
+# Emotion labels based on your model's training
+emotion_labels = ['Angry', 'Disgust', 'Fear', 'Happy', 'Sad', 'Surprise', 'Neutral']
 
-# Function to capture video from webcam
+# Function to process the video feed and predict mood
+def detect_mood(frame):
+    gray_frame = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)  # Convert to grayscale
+    resized_frame = cv2.resize(gray_frame, (64, 64))  # Resize to 64x64 pixels as required by the model
+    normalized_frame = resized_frame / 255.0  # Normalize pixel values to range [0,1]
+    reshaped_frame = np.reshape(normalized_frame, [1, 64, 64, 1])  # Reshape to (1, 64, 64, 1) for prediction
+    prediction = model.predict(reshaped_frame)  # Get prediction from the model
+    return emotion_labels[np.argmax(prediction)]  # Return the label with the highest probability
+
+# Streamlit application layout
+st.title("Real-Time Mood Detection")
+st.write("Using facial expression analysis to detect mood in real-time.")
+
+# Video capture setup
+video_capture = cv2.VideoCapture(0)  # Open webcam for video feed
+stframe = st.empty()  # Create an empty Streamlit frame to display the video feed
+
 def capture_video():
-    cap = cv2.VideoCapture(0)
-
-    if not cap.isOpened():
-        st.error("Failed to capture video feed.")
-        return
-
-    while True:
-        ret, frame = cap.read()
+    while st.session_state.running:
+        ret, frame = video_capture.read()  # Capture frame-by-frame
         if not ret:
-            st.error("Failed to capture frame.")
+            st.write("Failed to capture video feed.")
             break
 
-        # Perform mood detection here (placeholder)
-        # For example, we just convert to grayscale to simulate processing
-        gray_frame = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+        # Detect mood
+        mood = detect_mood(frame)
+        
+        # Display the detected mood on the frame
+        cv2.putText(frame, mood, (10, 30), cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 255, 255), 2)
+        
+        # Display the frame in Streamlit
+        stframe.image(frame, channels='BGR')
 
-        # Display the video feed
-        video_placeholder.image(gray_frame, channels="GRAY", use_column_width=True)
+# Streamlit button to start mood detection
+if st.button("Start Mood Detection"):
+    st.session_state.running = True
+    video_thread = threading.Thread(target=capture_video)
+    video_thread.start()
 
-        # Use Streamlit's stop button to break the loop
-        if st.button("Stop"):
-            break
+# Streamlit button to stop mood detection
+if st.button("Stop Mood Detection"):
+    st.session_state.running = False
+    video_capture.release()
 
-    cap.release()
-    cv2.destroyAllWindows()
-
-# Start capturing video on button click
-if st.button("Start Video Capture"):
-    capture_video()
+# On app close, release the video capture
+if 'running' in st.session_state and not st.session_state.running:
+    video_capture.release()
