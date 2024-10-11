@@ -2,9 +2,9 @@ import streamlit as st
 import cv2
 import numpy as np
 
-# Function to process images
+# Function to process images (replace this with your actual processing logic)
 def process_image(image):
-    # Example processing: convert to grayscale
+    # Example processing: convert to grayscale (or your mood detection logic)
     return cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
 
 # Streamlit UI
