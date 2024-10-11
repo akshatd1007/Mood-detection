@@ -1,54 +1,42 @@
 import streamlit as st
 import cv2
 import numpy as np
-from tensorflow.keras.models import load_model
 
-# Load pre-trained emotion detection model
-model = load_model('emotion_model.hdf5', compile=False)  # Update this to your model's path
-model.compile(optimizer='adam', loss='categorical_crossentropy', metrics=['accuracy'])
+# Load your model or other necessary resources here
 
-# Emotion labels based on your model's training
-emotion_labels = ['Angry', 'Disgust', 'Fear', 'Happy', 'Sad', 'Surprise', 'Neutral']
+# Function to process images (add your own logic here)
+def process_image(image_path):
+    # Read the image using OpenCV
+    image = cv2.imread(image_path)
+    
+    # Your image processing logic here (e.g., resizing, filtering, etc.)
+    # Example: Convert the image to grayscale
+    gray_image = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+    
+    return gray_image
 
-# Function to process the video feed and predict mood
-def detect_mood(frame):
-    gray_frame = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)  # Convert to grayscale
-    resized_frame = cv2.resize(gray_frame, (64, 64))  # Resize to 64x64 pixels as required by the model
-    normalized_frame = resized_frame / 255.0  # Normalize pixel values to range [0,1]
-    reshaped_frame = np.reshape(normalized_frame, [1, 64, 64, 1])  # Reshape to (1, 64, 64, 1) for prediction
-    prediction = model.predict(reshaped_frame)  # Get prediction from the model
-    return emotion_labels[np.argmax(prediction)]  # Return the label with the highest probability
+# Streamlit UI elements
+st.title("Mood Detection App")
 
-# Streamlit application layout
-st.title("Real-Time Mood Detection")
-st.write("Using facial expression analysis to detect mood in real-time.")
+# File uploader for image input
+uploaded_file = st.file_uploader("Choose an image...", type=["jpg", "jpeg", "png"])
 
-# Start video capture
-video_capture = cv2.VideoCapture(0)  # Open webcam for video feed
+if uploaded_file is not None:
+    # Process the uploaded image
+    image_path = uploaded_file.name
+    with open(image_path, "wb") as f:
+        f.write(uploaded_file.getbuffer())
+    
+    processed_image = process_image(image_path)
 
-# Streamlit button to start mood detection
-if st.button("Start Mood Detection"):
-    stframe = st.empty()  # Create an empty Streamlit frame to display the video feed
+    # Display the processed image in Streamlit
+    st.image(processed_image, caption='Processed Image', use_column_width=True)
 
-    while True:
-        ret, frame = video_capture.read()  # Capture frame-by-frame
-        if not ret:
-            st.write("Failed to capture video feed.")
-            break
+    # If you need to show the original image as well
+    original_image = cv2.imread(image_path)
+    st.image(original_image, caption='Original Image', use_column_width=True)
 
-        # Detect mood
-        mood = detect_mood(frame)
-        
-        # Display the detected mood on the frame
-        cv2.putText(frame, mood, (10, 30), cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 255, 255), 2)
-        
-        # Display the frame in Streamlit
-        stframe.image(frame, channels='BGR')
+    # Other app logic, like mood detection and displaying results
 
-        # For local testing, you can stop the loop with 'q' key (comment out if running only in Streamlit)
-        if cv2.waitKey(1) & 0xFF == ord('q'):
-            break
+# Note: Remove any calls to cv2.imshow(), cv2.waitKey(), and cv2.destroyAllWindows()
 
-    # Release video capture and close windows
-    video_capture.release()
-    cv2.destroyAllWindows()
