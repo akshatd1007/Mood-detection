@@ -1,4 +1,3 @@
 streamlit
-opencv-python-headless==4.5.5.64  # Specific version that should work
+opencv-python-headless
 numpy
-tensorflow
