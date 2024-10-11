@@ -2,30 +2,38 @@ import streamlit as st
 import cv2
 import numpy as np
 
-# Function to process images (replace this with your actual processing logic)
-def process_image(image):
-    # Example processing: convert to grayscale (or your mood detection logic)
-    return cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+st.title("Real-Time Image Capture")
 
-# Streamlit UI
-st.title("Mood Detection App")
+# Initialize the webcam
+video_capture = cv2.VideoCapture(0)
 
-# File uploader for images
-uploaded_file = st.file_uploader("Choose an image...", type=["jpg", "jpeg", "png"])
+# Check if the webcam is opened correctly
+if not video_capture.isOpened():
+    st.error("Failed to capture video feed")
+else:
+    # Create a placeholder for the video feed
+    frame_placeholder = st.empty()
 
-if uploaded_file is not None:
-    # Read the uploaded image
-    file_bytes = np.asarray(bytearray(uploaded_file.read()), dtype=np.uint8)
-    image = cv2.imdecode(file_bytes, cv2.IMREAD_COLOR)  # Read the image
+    # Capture video frame by frame
+    while True:
+        ret, frame = video_capture.read()
+        
+        if not ret:
+            st.error("Failed to grab frame")
+            break
+        
+        # Convert the frame from BGR to RGB
+        frame_rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+        
+        # Display the frame
+        frame_placeholder.image(frame_rgb, channels="RGB")
 
-    if image is not None:
-        # Display the original image
-        st.image(image, caption='Original Image', use_column_width=True)
+        # Allow user to capture an image
+        if st.button("Capture Image"):
+            st.image(frame_rgb, caption="Captured Image", channels="RGB")
+            break
 
-        # Process the image
-        processed_image = process_image(image)
+# Release the webcam when done
+video_capture.release()
+cv2.destroyAllWindows()
 
-        # Display the processed image
-        st.image(processed_image, caption='Processed Image', use_column_width=True)
-    else:
-        st.error("Could not read the image.")
