@@ -25,7 +25,7 @@ st.title("Real-Time Mood Detection")
 st.write("Using facial expression analysis to detect mood in real-time.")
 
 # Video capture setup
-video_capture = cv2.VideoCapture(0)  # Open webcam for video feed
+video_capture = cv2.VideoCapture(1)  # Open webcam for video feed
 stframe = st.empty()  # Create an empty Streamlit frame to display the video feed
 
 def capture_video():
