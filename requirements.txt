@@ -3,4 +3,4 @@ opencv-python
 numpy 
 tensorflow 
 keras
-opencv
+opencv-contrib-python<4.6.0
