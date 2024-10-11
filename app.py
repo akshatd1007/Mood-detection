@@ -1,23 +1,41 @@
-import cv2
 import streamlit as st
+import cv2
+import numpy as np
 
-st.title("Webcam Video Feed")
+# Title of the app
+st.title("Mood Detection App")
 
-# Start video capture
-cap = cv2.VideoCapture(0)
+# Placeholder for the video feed
+video_placeholder = st.empty()
 
-if not cap.isOpened():
-    st.error("Failed to open camera.")
-else:
-    # Read frames from the camera
+# Function to capture video from webcam
+def capture_video():
+    cap = cv2.VideoCapture(0)
+
+    if not cap.isOpened():
+        st.error("Failed to capture video feed.")
+        return
+
     while True:
         ret, frame = cap.read()
         if not ret:
-            st.error("Failed to capture video feed.")
+            st.error("Failed to capture frame.")
             break
-        
-        st.image(frame, channels="BGR")
-        # Process the frame here if needed
 
-# Release the camera when done
-cap.release()
+        # Perform mood detection here (placeholder)
+        # For example, we just convert to grayscale to simulate processing
+        gray_frame = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+
+        # Display the video feed
+        video_placeholder.image(gray_frame, channels="GRAY", use_column_width=True)
+
+        # Use Streamlit's stop button to break the loop
+        if st.button("Stop"):
+            break
+
+    cap.release()
+    cv2.destroyAllWindows()
+
+# Start capturing video on button click
+if st.button("Start Video Capture"):
+    capture_video()
