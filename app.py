@@ -1,31 +1,23 @@
-import streamlit as st
 import cv2
-import numpy as np
+import streamlit as st
 
-# Function to process images
-def process_image(image):
-    # Example processing: convert to grayscale
-    return cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+st.title("Webcam Video Feed")
 
-# Streamlit UI
-st.title("Mood Detection App")
+# Start video capture
+cap = cv2.VideoCapture(0)
 
-# File uploader for images
-uploaded_file = st.file_uploader("Choose an image...", type=["jpg", "jpeg", "png"])
+if not cap.isOpened():
+    st.error("Failed to open camera.")
+else:
+    # Read frames from the camera
+    while True:
+        ret, frame = cap.read()
+        if not ret:
+            st.error("Failed to capture video feed.")
+            break
+        
+        st.image(frame, channels="BGR")
+        # Process the frame here if needed
 
-if uploaded_file is not None:
-    # Read the uploaded image
-    file_bytes = np.asarray(bytearray(uploaded_file.read()), dtype=np.uint8)
-    image = cv2.imdecode(file_bytes, cv2.IMREAD_COLOR)  # Read the image
-
-    if image is not None:
-        # Display the original image
-        st.image(image, caption='Original Image', use_column_width=True)
-
-        # Process the image
-        processed_image = process_image(image)
-
-        # Display the processed image
-        st.image(processed_image, caption='Processed Image', use_column_width=True)
-    else:
-        st.error("Could not read the image.")
+# Release the camera when done
+cap.release()
