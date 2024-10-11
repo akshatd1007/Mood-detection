@@ -2,41 +2,37 @@ import streamlit as st
 import cv2
 import numpy as np
 
-# Load your model or other necessary resources here
+# Function to process images
+def process_image(image):
+    try:
+        # Convert the image to grayscale (or any other processing)
+        gray_image = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+        return gray_image
+    except Exception as e:
+        st.error(f"Error processing image: {e}")
+        return None
 
-# Function to process images (add your own logic here)
-def process_image(image_path):
-    # Read the image using OpenCV
-    image = cv2.imread(image_path)
-    
-    # Your image processing logic here (e.g., resizing, filtering, etc.)
-    # Example: Convert the image to grayscale
-    gray_image = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
-    
-    return gray_image
-
-# Streamlit UI elements
+# Streamlit UI
 st.title("Mood Detection App")
 
-# File uploader for image input
+# File uploader
 uploaded_file = st.file_uploader("Choose an image...", type=["jpg", "jpeg", "png"])
 
 if uploaded_file is not None:
-    # Process the uploaded image
-    image_path = uploaded_file.name
-    with open(image_path, "wb") as f:
-        f.write(uploaded_file.getbuffer())
-    
-    processed_image = process_image(image_path)
+    # Read the uploaded image
+    file_bytes = np.asarray(bytearray(uploaded_file.read()), dtype=np.uint8)
+    image = cv2.imdecode(file_bytes, 1)
 
-    # Display the processed image in Streamlit
-    st.image(processed_image, caption='Processed Image', use_column_width=True)
+    if image is not None:
+        # Process the image
+        processed_image = process_image(image)
 
-    # If you need to show the original image as well
-    original_image = cv2.imread(image_path)
-    st.image(original_image, caption='Original Image', use_column_width=True)
+        # Display the processed image
+        st.image(processed_image, caption='Processed Image', use_column_width=True)
+        
+        # Optionally, display the original image
+        st.image(image, caption='Original Image', use_column_width=True)
+    else:
+        st.error("Could not read the image.")
 
-    # Other app logic, like mood detection and displaying results
-
-# Note: Remove any calls to cv2.imshow(), cv2.waitKey(), and cv2.destroyAllWindows()
-
+# Any additional logic or processing can go here
