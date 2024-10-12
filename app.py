@@ -25,7 +25,7 @@ st.title("Real-Time Mood Detection")
 st.write("Using facial expression analysis to detect mood in real-time.")
 
 # Video capture setup
-video_capture = cv2.VideoCapture(1)  # Open webcam for video feed
+video_capture = cv2.VideoCapture(0)  # Open webcam for video feed, try changing to 0
 stframe = st.empty()  # Create an empty Streamlit frame to display the video feed
 
 def capture_video():
@@ -44,6 +44,10 @@ def capture_video():
         # Display the frame in Streamlit
         stframe.image(frame, channels='BGR')
 
+# Initialize session state for running
+if 'running' not in st.session_state:
+    st.session_state.running = False
+
 # Streamlit button to start mood detection
 if st.button("Start Mood Detection"):
     st.session_state.running = True
@@ -53,8 +57,7 @@ if st.button("Start Mood Detection"):
 # Streamlit button to stop mood detection
 if st.button("Stop Mood Detection"):
     st.session_state.running = False
-    video_capture.release()
 
 # On app close, release the video capture
-if 'running' in st.session_state and not st.session_state.running:
+if not st.session_state.running:
     video_capture.release()
